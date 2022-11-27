@@ -1,10 +1,26 @@
 # This code sample uses the 'requests' library:
 # http://docs.python-requests.org
+import argparse
+import os
+from typing import List, Tuple
 
 import requests
 import datetime
 
-# Start working
+# Get args
+argp = argparse.ArgumentParser()
+argp.add_argument("key", help="Trello key")
+argp.add_argument("key", help="Trello token")
+argp.add_argument("course_code", help="e.g: HN2006")
+argp.add_argument("start_date", help="e.g 2020/06/25")
+args = argp.parse_args()
+start = datetime.datetime.strptime(args.start_date, "%Y/%m/%d")
+course_code = args.course_code.upper()
+location = "Hà Nội" if course_code.startswith("HN") else "Tp Hồ Chí Minh"
+key = args.key
+token = args.token
+
+# Start working #
 ses = requests.session()
 url1 = "https://api.trello.com/1/boards/"
 url2 = "https://api.trello.com/1/lists"
@@ -16,9 +32,11 @@ headers = {
 
 # Create board
 query = {
-    'name': 'TestBoard',
-    'key': 'bb5b01bc6d8e5986963a43496e5fc6c9',
-    'token': '8853696c580eb7413a90e6d2933121722e165caba06e6a5c83987ad510bef380'
+    'name': "Học Python {} PYMI.vn {} timetable".format(
+        location, course_code
+    ),
+    'key': key,
+    'token': token
 }
 
 board = ses.request(
@@ -33,8 +51,9 @@ for i in range(5, 2, -2):
     query = {
         'name': 'Thứ {}'.format(i),
         'idBoard': '{}'.format(ListOfID[0]),
-        'key': 'bb5b01bc6d8e5986963a43496e5fc6c9',
-        'token': '8853696c580eb7413a90e6d2933121722e165caba06e6a5c83987ad510bef380'
+        'key': key,
+        'token': token
+
     }
     list = ses.request(
         "POST",
@@ -43,13 +62,30 @@ for i in range(5, 2, -2):
     )
     ListOfID.append(list.json()["id"])
 
+
 # Create cards
-for i in range(1, 13):
+    def days_for_class(
+            start: datetime.datetime, n=12
+    ) -> List[Tuple[str, int]]:
+        days: List[Tuple[str, int]] = []
+        count = 1
+        day = start
+        while count <= n:
+            # tuesday / thursday
+            if day.isoweekday() in [2, 4]:
+                days.append((day.strftime("%Y/%m/%d"), day.isoweekday()))
+                count = count + 1
+            day = day + datetime.timedelta(days=1)
+
+        return days
+
+for i, (date, dow) in enumerate(days_for_class(start), start=1):
     query = {
         'name': f'Bài {i}',
         'idList': f'{ListOfID[2] if i % 2 != 0 else ListOfID[1]}',
-        'key': 'bb5b01bc6d8e5986963a43496e5fc6c9',
-        'token': '8853696c580eb7413a90e6d2933121722e165caba06e6a5c83987ad510bef380'
+        'due': date,
+        'key': key,
+        'token': token
     }
     card = ses.request(
         "POST",
