@@ -1,2 +1,2 @@
 # Web-Crawling-Projects
-just a test
+just a test. Each branch is an exercises 
