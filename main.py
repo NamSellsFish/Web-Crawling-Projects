@@ -2,6 +2,7 @@ import requests
 import argparse
 import json
 from bs4 import BeautifulSoup
+import os
 
 # Get numbers. (This might help: https://stackoverflow.com/questions/
 # 15753701/how-can-i-pass-a-list-as-a-command-line-argument-with-argparse)
@@ -11,8 +12,8 @@ args = parser.parse_args()._get_kwargs()[0][1]
 
 # Find winners
 ses = requests.session()
-ses = requests.get("https://ketqua.vn/")
-soup = BeautifulSoup(ses.content, "html.parser")
+getInfo = ses.get("https://ketqua.vn/")
+soup = BeautifulSoup(getInfo.content, "html.parser")
 prizeJson = json.loads(soup.find("div", class_="data-kqxs hidden").text)
 prizeJson[' đặc biệt'] = prizeJson.pop('g0')
 if not args:
@@ -28,3 +29,4 @@ else:
                 check = True
     if check is False:
         print("Bạn không trúng gì cả!")
+os.system("pause")
